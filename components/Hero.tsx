@@ -32,9 +32,14 @@ const Hero: React.FC<HeroProps> = ({ onOpenModal }) => {
             >
               Get Started for £120 <i className="fa-solid fa-arrow-right"></i>
             </button>
-            <button className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-lg transition-all border border-slate-700">
-              View Demo
-            </button>
+            <a 
+              href="https://github.com/cmspayloaderr/headless-cms.git"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-lg transition-all border border-slate-700 flex items-center justify-center gap-2"
+            >
+              <i className="fa-brands fa-github"></i> Connect to Github
+            </a>
           </div>
           <div className="flex items-center justify-center gap-8 text-slate-500 text-sm font-medium">
             <div className="flex items-center gap-2">
