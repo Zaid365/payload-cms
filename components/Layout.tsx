@@ -38,8 +38,8 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenModal }) => {
       </main>
       <footer className="bg-slate-950 border-t border-slate-900 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center md:text-left">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="col-span-1">
               <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
                 <div className="w-6 h-6 rounded bg-indigo-600 flex items-center justify-center text-xs font-bold text-white">P</div>
                 <span className="text-lg font-bold">PayloadX</span>
@@ -49,29 +49,19 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenModal }) => {
                 Built on Payload, optimized for your next big project.
               </p>
             </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-slate-200">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li>Documentation</li>
-                <li>Templates</li>
-                <li>Plugin Store</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-slate-200">Company</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li>About</li>
-                <li>Support</li>
-                <li>Privacy</li>
-              </ul>
-            </div>
           </div>
           <div className="mt-12 pt-8 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-xs text-slate-500">© 2024 PayloadX. Licensed under MIT Core.</p>
             <div className="flex gap-4">
-               <i className="fa-brands fa-github text-slate-400 hover:text-white cursor-pointer"></i>
-               <i className="fa-brands fa-twitter text-slate-400 hover:text-white cursor-pointer"></i>
-               <i className="fa-brands fa-discord text-slate-400 hover:text-white cursor-pointer"></i>
+               <a 
+                 href="https://github.com/cmspayloaderr/headless-cms.git" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 className="text-slate-400 hover:text-white transition-colors"
+                 aria-label="GitHub Repository"
+               >
+                 <i className="fa-brands fa-github text-xl"></i>
+               </a>
             </div>
           </div>
         </div>
