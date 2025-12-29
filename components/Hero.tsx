@@ -1,7 +1,11 @@
 
 import React from 'react';
 
-const Hero: React.FC = () => {
+interface HeroProps {
+  onOpenModal: () => void;
+}
+
+const Hero: React.FC<HeroProps> = ({ onOpenModal }) => {
   return (
     <section className="relative overflow-hidden pt-20 pb-20 lg:pt-32 lg:pb-40">
       {/* Background blobs */}
@@ -22,7 +26,10 @@ const Hero: React.FC = () => {
             Built on Payload CMS. Owned by you.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
-            <button className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2">
+            <button 
+              onClick={onOpenModal}
+              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2"
+            >
               Get Started for £120 <i className="fa-solid fa-arrow-right"></i>
             </button>
             <button className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-lg transition-all border border-slate-700">

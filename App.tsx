@@ -1,20 +1,26 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from './components/Layout';
 import Hero from './components/Hero';
 import Features from './components/Features';
 import Pricing from './components/Pricing';
 import TechStack from './components/TechStack';
 import GeminiAssistant from './components/GeminiAssistant';
+import RegistrationModal from './components/RegistrationModal';
 
 const App: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
-    <Layout>
-      <Hero />
+    <Layout onOpenModal={openModal}>
+      <Hero onOpenModal={openModal} />
       <Features />
       <TechStack />
       <GeminiAssistant />
-      <Pricing />
+      <Pricing onOpenModal={openModal} />
       
       {/* Newsletter Section */}
       <section className="py-24 bg-slate-950">
@@ -33,6 +39,8 @@ const App: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <RegistrationModal isOpen={isModalOpen} onClose={closeModal} />
     </Layout>
   );
 };

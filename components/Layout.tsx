@@ -1,7 +1,12 @@
 
 import React from 'react';
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface LayoutProps {
+  children: React.ReactNode;
+  onOpenModal: () => void;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children, onOpenModal }) => {
   return (
     <div className="min-h-screen flex flex-col">
       <nav className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
@@ -18,7 +23,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <a href="#ai-assistant" className="text-sm font-medium hover:text-indigo-400 transition-colors">AI Architect</a>
             </div>
             <div className="flex items-center gap-4">
-              <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20">
+              <button 
+                onClick={onOpenModal}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20"
+              >
                 Get Started
               </button>
             </div>

@@ -2,7 +2,11 @@
 import React from 'react';
 import { PRICING_PLANS } from '../constants';
 
-const Pricing: React.FC = () => {
+interface PricingProps {
+  onOpenModal: () => void;
+}
+
+const Pricing: React.FC<PricingProps> = ({ onOpenModal }) => {
   return (
     <section id="pricing" className="py-24 bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,7 +41,9 @@ const Pricing: React.FC = () => {
                   </li>
                 ))}
               </ul>
-              <button className={`w-full py-3 rounded-xl font-bold transition-all ${
+              <button 
+                onClick={onOpenModal}
+                className={`w-full py-3 rounded-xl font-bold transition-all ${
                 plan.highlighted 
                 ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg' 
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
