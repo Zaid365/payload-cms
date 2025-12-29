@@ -1,0 +1,8 @@
+{
+  "name": "PayloadX - The Ultimate Headless CMS Distribution",
+  "description": "A premium, self-hosted headless CMS platform based on Payload CMS with a one-time fee and enterprise-grade features.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
