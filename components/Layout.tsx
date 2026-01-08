@@ -4,9 +4,10 @@ import React from 'react';
 interface LayoutProps {
   children: React.ReactNode;
   onOpenModal: () => void;
+  onOpenAuth: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, onOpenModal }) => {
+const Layout: React.FC<LayoutProps> = ({ children, onOpenModal, onOpenAuth }) => {
   return (
     <div className="min-h-screen flex flex-col">
       <nav className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
@@ -22,7 +23,13 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenModal }) => {
               <a href="#pricing" className="text-sm font-medium hover:text-indigo-400 transition-colors">Pricing</a>
               <a href="#ai-assistant" className="text-sm font-medium hover:text-indigo-400 transition-colors">AI Architect</a>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={onOpenAuth}
+                className="text-sm font-bold text-slate-300 hover:text-white px-4 py-2 transition-colors"
+              >
+                Login
+              </button>
               <button 
                 onClick={onOpenModal}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20"
