@@ -4,17 +4,18 @@ import { auth } from '../services/firebase';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  updateProfile 
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMode?: 'login' | 'signup';
+  initialMode?: 'login' | 'signup' | 'forgot';
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>(initialMode);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,6 +24,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -30,43 +32,50 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setMessage(null);
 
     try {
       if (mode === 'signup') {
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        // Set the display name if signing up
         if (formData.name) {
           await updateProfile(userCredential.user, {
             displayName: formData.name
           });
         }
-      } else {
+        setIsSuccess(true);
+      } else if (mode === 'login') {
         await signInWithEmailAndPassword(auth, formData.email, formData.password);
+        setIsSuccess(true);
+      } else if (mode === 'forgot') {
+        await sendPasswordResetEmail(auth, formData.email);
+        setMessage("Password reset link sent to your email!");
       }
       
-      setIsSuccess(true);
-      setTimeout(() => {
-        setIsSuccess(false);
-        onClose();
-      }, 1500);
+      if (mode !== 'forgot') {
+        setTimeout(() => {
+          setIsSuccess(false);
+          onClose();
+        }, 1500);
+      }
     } catch (err: any) {
       console.error("Auth error:", err);
-      // Friendly error mapping
-      let message = "An error occurred during authentication.";
-      if (err.code === 'auth/email-already-in-use') message = "Email already registered.";
-      if (err.code === 'auth/invalid-credential') message = "Invalid email or password.";
-      if (err.code === 'auth/weak-password') message = "Password should be at least 6 characters.";
-      if (err.code === 'auth/user-not-found') message = "No account found with this email.";
+      let errMsg = "An error occurred during authentication.";
+      if (err.code === 'auth/email-already-in-use') errMsg = "Email already registered.";
+      if (err.code === 'auth/invalid-credential') errMsg = "Invalid email or password.";
+      if (err.code === 'auth/weak-password') errMsg = "Password should be at least 6 characters.";
+      if (err.code === 'auth/user-not-found') errMsg = "No account found with this email.";
+      if (err.code === 'auth/too-many-requests') errMsg = "Too many attempts. Please try again later.";
       
-      setError(message);
+      setError(errMsg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleMode = () => {
-    setMode(mode === 'login' ? 'signup' : 'login');
+  const toggleMode = (newMode: 'login' | 'signup' | 'forgot') => {
+    setMode(newMode);
     setError(null);
+    setMessage(null);
     setIsSuccess(false);
   };
 
@@ -95,11 +104,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           ) : (
             <>
               <div className="mb-8">
-                <h2 className="text-3xl font-bold mb-2">{mode === 'login' ? 'Login' : 'Create Account'}</h2>
+                <h2 className="text-3xl font-bold mb-2">
+                  {mode === 'login' && 'Login'}
+                  {mode === 'signup' && 'Create Account'}
+                  {mode === 'forgot' && 'Reset Password'}
+                </h2>
                 <p className="text-slate-400 text-sm">
-                  {mode === 'login' 
-                    ? 'Secure access to your PayloadX instance.' 
-                    : 'Start your journey with PayloadX.'}
+                  {mode === 'login' && 'Secure access to your PayloadX instance.'}
+                  {mode === 'signup' && 'Start your journey with PayloadX.'}
+                  {mode === 'forgot' && 'We will send a reset link to your email.'}
                 </p>
               </div>
 
@@ -107,6 +120,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                 <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-lg flex items-center gap-2 animate-in shake duration-300">
                   <i className="fa-solid fa-triangle-exclamation"></i>
                   {error}
+                </div>
+              )}
+
+              {message && (
+                <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 text-green-400 text-xs rounded-lg flex items-center gap-2">
+                  <i className="fa-solid fa-circle-check"></i>
+                  {message}
                 </div>
               )}
 
@@ -135,21 +155,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Password</label>
-                  <input 
-                    required
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    placeholder="••••••••"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all"
-                  />
-                </div>
+                {mode !== 'forgot' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Password</label>
+                    <input 
+                      required
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      placeholder="••••••••"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all"
+                    />
+                  </div>
+                )}
                 
                 {mode === 'login' && (
                   <div className="flex justify-end">
-                    <button type="button" className="text-xs text-indigo-400 hover:text-indigo-300 font-medium">Forgot password?</button>
+                    <button 
+                      type="button" 
+                      onClick={() => toggleMode('forgot')}
+                      className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+                    >
+                      Forgot password?
+                    </button>
                   </div>
                 )}
 
@@ -161,20 +189,32 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   {isLoading ? (
                     <i className="fa-solid fa-circle-notch animate-spin"></i>
                   ) : (
-                    mode === 'login' ? 'Sign In' : 'Create Account'
+                    <>
+                      {mode === 'login' && 'Sign In'}
+                      {mode === 'signup' && 'Create Account'}
+                      {mode === 'forgot' && 'Send Reset Link'}
+                    </>
                   )}
                 </button>
               </form>
 
               <div className="mt-8 pt-6 border-t border-slate-800 text-center">
                 <p className="text-sm text-slate-400">
-                  {mode === 'login' ? "Don't have an account?" : "Already have an account?"}{' '}
-                  <button 
-                    onClick={toggleMode}
-                    className="text-indigo-400 hover:text-indigo-300 font-bold transition-colors"
-                  >
-                    {mode === 'login' ? 'Sign Up' : 'Login'}
-                  </button>
+                  {mode === 'login' && (
+                    <>
+                      Don't have an account?{' '}
+                      <button onClick={() => toggleMode('signup')} className="text-indigo-400 hover:text-indigo-300 font-bold">Sign Up</button>
+                    </>
+                  )}
+                  {mode === 'signup' && (
+                    <>
+                      Already have an account?{' '}
+                      <button onClick={() => toggleMode('login')} className="text-indigo-400 hover:text-indigo-300 font-bold">Login</button>
+                    </>
+                  )}
+                  {mode === 'forgot' && (
+                    <button onClick={() => toggleMode('login')} className="text-indigo-400 hover:text-indigo-300 font-bold">Back to Login</button>
+                  )}
                 </p>
               </div>
             </>

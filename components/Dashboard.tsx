@@ -1,5 +1,7 @@
 
 import React, { useState } from 'react';
+import { auth } from '../services/firebase';
+import { verifyBeforeUpdateEmail } from 'firebase/auth';
 
 interface DashboardProps {
   user: { name: string, email: string };
@@ -8,7 +10,10 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [isLive, setIsLive] = useState(true);
   const [isPlugOffModalOpen, setIsPlugOffModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailUpdateStatus, setEmailUpdateStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   // Authorization check: Only this specific email sees the active instance
   const isAuthorized = user.email.toLowerCase() === 'zaidu2619@gmail.com';
@@ -23,6 +28,31 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     }, 1500);
   };
 
+  const handleChangeEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth.currentUser) return;
+    setLoading(true);
+    setEmailUpdateStatus(null);
+
+    try {
+      // Firebase verifyBeforeUpdateEmail sends a confirmation link to the new email
+      await verifyBeforeUpdateEmail(auth.currentUser, newEmail);
+      setEmailUpdateStatus({
+        type: 'success',
+        message: 'A confirmation link has been sent to your new email. Please verify it to complete the change.'
+      });
+      setNewEmail('');
+    } catch (err: any) {
+      console.error(err);
+      setEmailUpdateStatus({
+        type: 'error',
+        message: err.message || 'Failed to initiate email change. You might need to re-login for security reasons.'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-[80vh] py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -34,13 +64,74 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
               : 'You currently have no active deployments linked to this account.'}
           </p>
         </div>
-        <div className="flex items-center gap-3 bg-slate-800/50 p-2 rounded-2xl border border-slate-700/50">
-          <div className={`w-3 h-3 rounded-full ${isAuthorized && isLive ? 'bg-green-500 animate-pulse' : 'bg-slate-600'}`}></div>
-          <span className="text-sm font-bold text-slate-300">
-            System Status: {isAuthorized ? (isLive ? 'Operational' : 'Disconnected') : 'Not Configured'}
-          </span>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl border border-slate-700 transition-all text-sm font-medium"
+          >
+            <i className="fa-solid fa-gear"></i> Account Settings
+          </button>
+          <div className="flex items-center gap-3 bg-slate-800/50 p-2 rounded-2xl border border-slate-700/50">
+            <div className={`w-3 h-3 rounded-full ${isAuthorized && isLive ? 'bg-green-500 animate-pulse' : 'bg-slate-600'}`}></div>
+            <span className="text-sm font-bold text-slate-300">
+              System Status: {isAuthorized ? (isLive ? 'Operational' : 'Disconnected') : 'Not Configured'}
+            </span>
+          </div>
         </div>
       </div>
+
+      {isSettingsOpen && (
+        <div className="mb-8 p-8 bg-slate-800/40 border border-slate-700 rounded-3xl animate-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold">Account Settings</h3>
+            <button onClick={() => setIsSettingsOpen(false)} className="text-slate-500 hover:text-white">
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div className="max-w-md">
+            <form onSubmit={handleChangeEmail} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Current Email</label>
+                <div className="bg-slate-900 border border-slate-800 px-4 py-3 rounded-xl text-slate-400 text-sm">
+                  {user.email}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">New Email Address</label>
+                <div className="flex gap-2">
+                  <input 
+                    required
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="new@email.com"
+                    className="flex-grow bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white transition-all"
+                  />
+                  <button 
+                    disabled={loading || !newEmail}
+                    type="submit"
+                    className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-600/20"
+                  >
+                    {loading ? <i className="fa-solid fa-circle-notch animate-spin"></i> : 'Update'}
+                  </button>
+                </div>
+                <p className="mt-2 text-[10px] text-slate-500">
+                  <i className="fa-solid fa-circle-info mr-1"></i>
+                  For your security, you must confirm the change via a link sent to your new email.
+                </p>
+              </div>
+              {emailUpdateStatus && (
+                <div className={`p-3 rounded-xl text-xs flex items-start gap-2 animate-in fade-in duration-300 ${
+                  emailUpdateStatus.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                }`}>
+                  <i className={`fa-solid mt-0.5 ${emailUpdateStatus.type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}`}></i>
+                  {emailUpdateStatus.message}
+                </div>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Subscription Info */}
