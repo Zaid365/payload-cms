@@ -1,5 +1,11 @@
 
 import React, { useState } from 'react';
+import { auth } from '../services/firebase';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  updateProfile 
+} from 'firebase/auth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,27 +20,53 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     email: '',
     password: ''
   });
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Mocking auth delay
-    setTimeout(() => {
-      setIsLoading(false);
+    setError(null);
+
+    try {
+      if (mode === 'signup') {
+        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+        // Set the display name if signing up
+        if (formData.name) {
+          await updateProfile(userCredential.user, {
+            displayName: formData.name
+          });
+        }
+      } else {
+        await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      }
+      
       setIsSuccess(true);
       setTimeout(() => {
         setIsSuccess(false);
         onClose();
-      }, 2000);
-    }, 1500);
+      }, 1500);
+    } catch (err: any) {
+      console.error("Auth error:", err);
+      // Friendly error mapping
+      let message = "An error occurred during authentication.";
+      if (err.code === 'auth/email-already-in-use') message = "Email already registered.";
+      if (err.code === 'auth/invalid-credential') message = "Invalid email or password.";
+      if (err.code === 'auth/weak-password') message = "Password should be at least 6 characters.";
+      if (err.code === 'auth/user-not-found') message = "No account found with this email.";
+      
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleMode = () => {
     setMode(mode === 'login' ? 'signup' : 'login');
+    setError(null);
     setIsSuccess(false);
   };
 
@@ -57,8 +89,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
               <div className="w-20 h-20 bg-indigo-500/20 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <i className="fa-solid fa-circle-check text-4xl"></i>
               </div>
-              <h2 className="text-2xl font-bold mb-2">Welcome Back!</h2>
-              <p className="text-slate-400">Redirecting to your dashboard...</p>
+              <h2 className="text-2xl font-bold mb-2">{mode === 'signup' ? 'Account Created!' : 'Welcome Back!'}</h2>
+              <p className="text-slate-400">Loading your dashboard...</p>
             </div>
           ) : (
             <>
@@ -66,10 +98,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                 <h2 className="text-3xl font-bold mb-2">{mode === 'login' ? 'Login' : 'Create Account'}</h2>
                 <p className="text-slate-400 text-sm">
                   {mode === 'login' 
-                    ? 'Welcome back to PayloadX.' 
-                    : 'Start your 14-day free trial today.'}
+                    ? 'Secure access to your PayloadX instance.' 
+                    : 'Start your journey with PayloadX.'}
                 </p>
               </div>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-lg flex items-center gap-2 animate-in shake duration-300">
+                  <i className="fa-solid fa-triangle-exclamation"></i>
+                  {error}
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {mode === 'signup' && (

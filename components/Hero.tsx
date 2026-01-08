@@ -3,9 +3,10 @@ import React from 'react';
 
 interface HeroProps {
   onOpenModal: () => void;
+  isLoggedIn?: boolean;
 }
 
-const Hero: React.FC<HeroProps> = ({ onOpenModal }) => {
+const Hero: React.FC<HeroProps> = ({ onOpenModal, isLoggedIn }) => {
   return (
     <section className="relative overflow-hidden pt-20 pb-20 lg:pt-32 lg:pb-40">
       {/* Background blobs */}
@@ -30,7 +31,7 @@ const Hero: React.FC<HeroProps> = ({ onOpenModal }) => {
               onClick={onOpenModal}
               className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2"
             >
-              Get Started for £120 <i className="fa-solid fa-arrow-right"></i>
+              {isLoggedIn ? 'Manage Your Code' : 'Get Started for £120'} <i className="fa-solid fa-arrow-right"></i>
             </button>
             <a 
               href="https://github.com/cmspayloaderr/headless-cms.git"
@@ -38,7 +39,7 @@ const Hero: React.FC<HeroProps> = ({ onOpenModal }) => {
               rel="noopener noreferrer"
               className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-lg transition-all border border-slate-700 flex items-center justify-center gap-2"
             >
-              <i className="fa-brands fa-github"></i> Connect to Github
+              <i className="fa-brands fa-github"></i> View Repo
             </a>
           </div>
           <div className="flex items-center justify-center gap-8 text-slate-500 text-sm font-medium">
